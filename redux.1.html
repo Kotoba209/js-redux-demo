@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+
+<body>
+  <div>
+    <button onclick="store.dispatch({type: 'JIAN', n:2})">-</button>
+    <span id="html"></span>
+    <button onclick="store.dispatch({type: 'JIA', n:2})">+</button>
+  </div>
+  <script>
+    // 获取到标签元素
+    const countDisplay = document.querySelector('#html')
+
+    // 定义一个对象
+    const countState = {
+      count: 10,
+    }
+
+    // 处理加减count， 传入一个action对象， 65行调用该函数的地方传入对象， 该对象为 html标签13、15行所传入的实参
+    const changeState = (state, action) => {
+      // 初始处理 若传入的state为空则使用 所定义的对象countState作初始值
+      if (!state) {
+        return countState;
+      }
+      switch (action.type) {
+        case 'JIAN':
+          // state.count = state.count - action.n
+          // break;
+          return {
+            ...state,
+            count: state.count - action.n,
+          }
+
+          case 'JIA':
+            // state.count = state.count + action.n
+            // break;
+            return {
+              ...state,
+              count: state.count + action.n
+            }
+            default:
+              return state;
+      }
+    }
+
+
+    // 创建 公共状态管理库函数， 79行执行
+    const createStore = (changeState) => {
+      let state = null; // 定义初始的state私有变量
+      const getState = () => state; // 单纯的把传入的state返回出去
+
+      const listeners = []; // 创建空数组 存放渲染函数
+      const subscribe = (listener) => listeners.push(
+        listener); // push 渲染页面函数进 listeners数组 (listener 为形参， 在87行调用该函数的地方传入实参: renderCount 函数)
+
+      // dispatch方法放在标签的 onClick中并传入实参， action为接收实参的形参
+      const dispatch = (action) => {
+        state = changeState(state, action); // 传入state对象作为参数之一 ，经过changeState函数修改之后再赋值给 state， 之后会被getState返回出去
+        listeners.forEach(listen => listen()); // 遍历listeners数组中所传入的渲染函数 并执行渲染函数， 在渲染函数中会调用 getState函数(83行) 渲染修改页面
+      }
+
+      dispatch({}); // 初始值处理
+
+      // 闭包处理， 把方法返回 以便当前函数外的地方使用
+      return {
+        getState,
+        dispatch,
+        subscribe,
+      }
+    }
+
+    const store = createStore(changeState) // 把countState对象 和 changeState方法传到 公共状态管理库 并把当前执行结果赋值给store
+
+    // 把count 渲染到页面上
+    const renderCount = () => {
+      countDisplay.innerHTML = store.getState().count // getState()返回的是countState对象, 加 . 取到 countState 对象下的count
+    }
+
+    renderCount() // 执行 renderCount
+    store.subscribe(renderCount); // 执行store中的 subscribe函数 并传入renderCount函数
+  </script>
+</body>
+
+</html>
